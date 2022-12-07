@@ -3,10 +3,10 @@ import {useNavigate} from "react-router-dom";
 import styled from "styled-components";
 import {SlLogout} from "react-icons/sl";
 
-const Logout = () => {
+const Logout = ({removeCookie}) => {
     const navigate = useNavigate();
     const handleClick = async () => {
-        localStorage.clear();
+        removeCookie("jwt")
         navigate("/login")
     }
     return (

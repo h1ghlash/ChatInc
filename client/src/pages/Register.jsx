@@ -24,12 +24,6 @@ const Register = () => {
         theme: "dark"
     }
 
-    useEffect(() => {
-        if(localStorage.getItem('chat-app-user')) {
-            navigate('/');
-        }
-    }, [])
-
     const handleValidation = () => {
         const {password, confirmPassword, username, email} = values;
         let result = true;
@@ -60,13 +54,15 @@ const Register = () => {
                 username,
                 email,
                 password,
+            }, {
+                withCredentials: true,
             })
+            if(data)
+            {
+                navigate("/");
+            }
             if(data.status === false){
                 toast.error(data.msg, toastOptions);
-            }
-            if(data.status === true){
-                localStorage.setItem('chat-app-user', JSON.stringify(data.user));
-                navigate("/");
             }
         }
     };

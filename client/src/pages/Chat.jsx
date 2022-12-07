@@ -2,48 +2,63 @@ import React, {useEffect, useRef, useState} from 'react';
 import styled from "styled-components";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
-import {allUsersRoute, host} from "../utils/APIRoutes";
+import {allUsersRoute, host, getCurrentUserRoute} from "../utils/APIRoutes";
 import Contacts from "../components/Contacts";
 import ChatContainer from "../components/ChatContainer";
 import {io} from "socket.io-client"
+import {useCookies} from "react-cookie";
+
 const Chat = () => {
     const socket = useRef();
+    const [cookies, removeCookie] = useCookies([]);
     const [contacts, setContacts] = useState([]);
     const [currentUser, setCurrentUser] = useState(undefined);
+    const [currentName, setCurrentName] = useState([]);
     const [currentChat, setCurrentChat] = useState(undefined);
     const [isLoaded, setIsLoaded] = useState(false);
     const navigate = useNavigate();
-    useEffect( () => {
-        async function RememberUser(){
-            if (!localStorage.getItem("chat-app-user")) {
+    useEffect(() => {
+        const verifyUser = async () => {
+            if (!cookies.jwt) {
                 navigate("/login");
             } else {
-                setCurrentUser(
-                    await JSON.parse(
-                        localStorage.getItem("chat-app-user")
-                    )
-                );
-                setIsLoaded(true);
+                const token = cookies.jwt;
+                let base64Url = token.split('.')[1];
+                let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                setCurrentUser(JSON.parse(jsonPayload));
             }
-        }
-        RememberUser();
-    }, []);
+        };
+        verifyUser();
+    }, [cookies, navigate, removeCookie]);
     useEffect(() => {
         if (currentUser) {
             socket.current = io(host);
-            socket.current.emit("add-user", currentUser._id);
+            socket.current.emit("add-user", currentUser.id);
         }
     }, [currentUser]);
     useEffect( () => {
         async function getUsers(){
             if(currentUser) {
-                const data = await  axios.get(`${allUsersRoute}/${currentUser._id}`);
+                const data = await  axios.get(`${allUsersRoute}/${currentUser.id}`);
                 setContacts(data.data);
             }
         }
         getUsers();
 
     }, [currentUser])
+
+    async function getCurrentUserName(){
+            if(currentUser) {
+                const {data} = await  axios.get(`${getCurrentUserRoute}/${currentUser.id}`);
+                data.map((name) => {
+                    setCurrentName(name.username)
+                })
+            }
+        }
+        getCurrentUserName()
 
     const handleChatChange = (chat) => {
         setCurrentChat(chat);
@@ -52,11 +67,11 @@ const Chat = () => {
         <>
             <Container>
                 <div className="container">
-                    <Contacts contacts={contacts} currentUser={currentUser} changeChat={handleChatChange}/>
+                    <Contacts contacts={contacts} currentUser={currentUser} changeChat={handleChatChange} currentName={currentName}/>
                     {
                        isLoaded && currentChat === undefined
                            ? (<div></div>)
-                            : (<ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket}/>)
+                            : (<ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket} removeCookie={removeCookie}/>)
                     }
                 </div>
             </Container>

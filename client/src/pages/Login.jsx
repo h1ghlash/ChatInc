@@ -5,6 +5,7 @@ import {Link, useNavigate} from "react-router-dom";
 import {toast, ToastContainer} from "react-toastify";
 import axios from "axios";
 import {loginRoute} from "../utils/APIRoutes";
+import {useCookies} from "react-cookie";
 
 const Login = () => {
     const [values, setValues] = useState({
@@ -20,12 +21,6 @@ const Login = () => {
         draggable: true,
         theme: "dark"
     }
-
-    useEffect(() => {
-        if(localStorage.getItem('chat-app-user')) {
-            navigate('/');
-        }
-    }, [])
 
     const handleValidation = () => {
         const {username, password} = values;
@@ -50,13 +45,11 @@ const Login = () => {
             const {data} = await axios.post(loginRoute, {
                 username,
                 password,
-            })
+            }, {withCredentials: true})
             if(data.status === false){
                 toast.error(data.msg, toastOptions);
-            }
-            if(data.status === true){
-                localStorage.setItem('chat-app-user', JSON.stringify(data.user));
-                navigate("/");
+            } else {
+                navigate("/")
             }
         }
     }

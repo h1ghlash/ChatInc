@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Logo from "../assets/logo.svg";
 import Avatar from "../assets/user.png";
 
-const Contacts = ({contacts, currentUser, changeChat}) => {
+const Contacts = ({contacts, currentUser, changeChat, currentName}) => {
     const [currentUserName,setCurrentUserName] = useState(undefined);
     const [currentSelected, setCurrentSelected] = useState(undefined);
     useEffect(() => {
@@ -56,7 +56,7 @@ const Contacts = ({contacts, currentUser, changeChat}) => {
                             />
                         </div>
                         <div className="username">
-                            <h2>{currentUserName}</h2>
+                            <h2>{currentName}</h2>
                         </div>
                     </div>
                 </Container>
