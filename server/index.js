@@ -3,16 +3,20 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/userRoutes");
 const messagesRoute = require("./routes/messagesRoute")
-
+const cookieParser = require("cookie-parser");
 const app = express();
 const socket = require("socket.io");
 require("dotenv").config();
 
-app.use(cors());
+app.use(cors({
+    origin:  "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true
+}));
+app.use(cookieParser());
 app.use(express.json());
-
 app.use("/api/auth", userRoutes);
-app.use("/api/messages", messagesRoute)
+app.use("/api/messages", messagesRoute);
 
 const start = async () => {
     try {
